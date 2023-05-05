@@ -19,6 +19,7 @@ pipeline {
       steps {
         echo 'package maven app'
         sh 'mvn package -DskipTests'
+        archiveArtifacts(allowEmptyArchive: true, defaultExcludes: true, caseSensitive: true, artifacts: '**/*.war')
       }
     }
 
