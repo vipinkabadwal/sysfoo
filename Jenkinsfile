@@ -1,7 +1,13 @@
 pipeline {
-  agent any
+  agent none
   stages {
     stage('build') {
+      agent {
+        docker {
+          image 'maven:3.6.3-jdk-11-slim'
+        }
+
+      }
       steps {
         echo 'compile maven app'
         sh 'mvn compile'
@@ -9,6 +15,12 @@ pipeline {
     }
 
     stage('test') {
+      agent {
+        docker {
+          image 'maven:3.6.3-jdk-11-slim'
+        }
+
+      }
       steps {
         echo 'test maven app'
         sh 'mvn clean test'
@@ -16,6 +28,12 @@ pipeline {
     }
 
     stage('package') {
+      agent {
+        docker {
+          image 'maven:3.6.3-jdk-11-slim'
+        }
+
+      }
       steps {
         echo 'package maven app'
         sh 'mvn package -DskipTests'
@@ -23,8 +41,24 @@ pipeline {
       }
     }
 
-  }
-  tools {
-    maven 'Maven 3.9.0'
+    stage('Docker BnP') {
+      agent any
+      steps {
+        script {
+          docker.withRegistry('https://index.docker.io/v1/', 'dockerlogin') {
+            def dockerImage = docker.build("vipindoc/sysfoo:v${env.BUILD_ID}", "./")
+
+            when{
+              "${env.BRANCH_NAME} == master"
+              {
+                dockerImage.push()
+              }
+            }
+          }
+        }
+
+      }
+    }
+
   }
 }
