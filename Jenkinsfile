@@ -34,6 +34,9 @@ pipeline {
         }
 
       }
+      when {
+        branch 'master'
+      }
       steps {
         echo 'package maven app'
         sh 'mvn package -DskipTests'
@@ -43,17 +46,16 @@ pipeline {
 
     stage('Docker BnP') {
       agent any
+      when {
+        branch 'master'
+      }
       steps {
         script {
           docker.withRegistry('https://index.docker.io/v1/', 'dockerlogin') {
             def dockerImage = docker.build("vipindoc/sysfoo:v${env.BUILD_ID}", "./")
-
-            when{
-              "${env.BRANCH_NAME} == master"
-              {
-                dockerImage.push()
-              }
-            }
+            dockerImage.push()
+            dockerImage.push("latest")
+            dockerImage.push("dev")
           }
         }
 
